@@ -6,6 +6,8 @@ from sklearn.neighbors import KDTree
 import scipy.sparse as sp
 from scipy.spatial.distance import cosine
 
+# Embedding 就是用一个数值向量“表示”一个对象（Object）的方法
+# 计算embedding之间的相似性
 def get_embedding_similarities(embed, embed2 = None, sim_measure = "euclidean", num_top = None):
 	n_nodes, dim = embed.shape
 	if embed2 is None:
@@ -28,6 +30,9 @@ def get_embedding_similarities(embed, embed2 = None, sim_measure = "euclidean", 
 #Right now asssume graphs are same size (as done in paper's experiments)
 #NOTE: to handle graphs of different sizes, pass in an arbitrary split index
 #Similarly, to embed >2 graphs, change to pass in a list of splits and return list of embeddings
+
+# 将总的embedding根据初始所处的图拆分成2个或多个embedding
+
 def get_embeddings(combined_embed, graph_split_idx = None):
 	if graph_split_idx is None:
 		graph_split_idx = int(combined_embed.shape[0] / 2)
@@ -37,8 +42,11 @@ def get_embeddings(combined_embed, graph_split_idx = None):
 
 	return embed1, embed2
 
-#alignments are dictionary of the form node_in_graph 1 : node_in_graph2
-#rows of alignment matrix are nodes in graph 1, columns are nodes in graph2
+# alignments are dictionary of the form node_in_graph 1 : node_in_graph2
+# rows of alignment matrix are nodes in graph 1, columns are nodes in graph2
+# 对齐是一个如下形式的字典：node_in_graph 1 : node_in_graph2
+# 对齐矩阵：行是图1中的结点，列是图2中的结点
+# 计算对齐的得分
 def score(alignment_matrix, true_alignments = None):
 	if true_alignments is None: #assume it's just identity permutation
 		return np.sum(np.diagonal(alignment_matrix))
@@ -48,12 +56,14 @@ def score(alignment_matrix, true_alignments = None):
 		return np.sum(alignment_matrix[nodes_g1, nodes_g2])
 
 
+# 计算embedding矩阵得分
 def score_embeddings_matrices(embed1, embed2, topk = None, similarity_threshold = None, normalize = False, true_alignments = None, sim="cosine"):
 	similarity_matrix = get_embedding_similarities(embed1, embed2, sim_measure = sim)
 	alignment_matrix = get_estimated_alignment_matrix(similarity_matrix, similarity_threshold, normalize)
 	score = score_alignment_matrix(alignment_matrix, topk = topk, true_alignments = true_alignments)
 	return score
 
+# kd数对齐
 def kd_align(emb1, emb2, normalize=False, distance_metric = "euclidean", num_top = 50):
 	kd_tree = KDTree(emb2, metric = distance_metric)	
 		
