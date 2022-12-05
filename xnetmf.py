@@ -1,10 +1,16 @@
 import numpy as np, scipy as sp, networkx as nx
 import math, time, os, sys
-from config import *
+from config import *        # 引入两个类的定义
 
-#Input: graph, RepMethod
-#Output: dictionary of dictionaries: for each node, dictionary containing {node : {layer_num : [list of neighbors]}}
+# Input: graph, RepMethod
+# Output: dictionary of dictionaries: for each node, dictionary containing {node : {layer_num : [list of neighbors]}}
 #        dictionary {node ID: degree}
+# 输入：1 Graph对象 
+# 		2 RepMethod对象
+# 输出：1 字典的字典：对于每个结点，都有一个字典。{node : {layer_num : [list of neighbors]}
+# 		2 字典{node ID: degree}}
+
+# 计算每个结点的k-hop邻居
 def get_khop_neighbors(graph, rep_method):
 	if rep_method.max_layer is None:
 		rep_method.max_layer = graph.N #Don't need this line, just sanity prevent infinite loop
@@ -71,9 +77,12 @@ def get_khop_neighbors(graph, rep_method):
 	return kneighbors_dict
 
 
-#Turn lists of neighbors into a degree sequence
-#Input: graph, RepMethod, node's neighbors at a given layer, the node
-#Output: length-D list of ints (counts of nodes of each degree), where D is max degree in graph
+# Turn lists of neighbors into a degree sequence
+# Input: graph, RepMethod, node's neighbors at a given layer, the node
+# Output: length-D list of ints (counts of nodes of each degree), where D is max degree in graph
+# 将邻居列表转换为度序列
+# 输入: Graph;RepMethod;给顶层上节点邻居,结点
+# 输出: length-D的整数列表（每个阶的节点数），其中D是图中的最大阶
 def get_degree_sequence(graph, rep_method, kneighbors, current_node):
 	if rep_method.num_buckets is not None:
 		degree_counts = [0] * int(math.log(graph.max_degree, rep_method.num_buckets) + 1)
@@ -93,20 +102,24 @@ def get_degree_sequence(graph, rep_method, kneighbors, current_node):
 			degree_counts[degree] += weight
 	return degree_counts
 
-#Get structural features for nodes in a graph based on degree sequences of neighbors
-#Input: graph, RepMethod
-#Output: nxD feature matrix
+# Get structural features for nodes in a graph based on degree sequences of neighbors
+# Input: graph, RepMethod
+# Output: nxD feature matrix
+# 基于邻居的度序列获取图中节点的结构特征
+# 输入: Graph;RepMethod;
+# 输出: n x D 的特征矩阵
 def get_features(graph, rep_method, verbose = True):
 	before_khop = time.time()
-	#Get k-hop neighbors of all nodes
+	# Get k-hop neighbors of all nodes
+	# 得到每个结点的k-hop邻居
 	khop_neighbors_nobfs = get_khop_neighbors(graph, rep_method)
 
 	graph.khop_neighbors = khop_neighbors_nobfs
 	
 	if verbose:
-		print("max degree: ", graph.max_degree)
+		print("最大度: ", graph.max_degree)
 		after_khop = time.time()
-		print("got k hop neighbors in time: ", after_khop - before_khop)
+		print("计算每个结点的k-hop邻居用时: %f 秒 " % (after_khop - before_khop) )
 
 	G_adj = graph.G_adj
 	num_nodes = G_adj.shape[0]
@@ -131,9 +144,11 @@ def get_features(graph, rep_method, verbose = True):
 
 	return feature_matrix
 
-#Input: two vectors of the same length
-#Optional: tuple of (same length) vectors of node attributes for corresponding nodes
-#Output: number between 0 and 1 representing their similarity
+# Input: two vectors of the same length
+# Optional: tuple of (same length) vectors of node attributes for corresponding nodes
+# Output: number between 0 and 1 representing their similarity
+# 输入: Graph;RepMethod;
+# 输出: n x D 的特征矩阵
 def compute_similarity(graph, rep_method, vec1, vec2, node_attributes = None, node_indices = None):
 	dist = rep_method.gammastruc * np.linalg.norm(vec1 - vec2) #compare distances between structural identities
 	if graph.node_attributes is not None:
@@ -142,22 +157,26 @@ def compute_similarity(graph, rep_method, vec1, vec2, node_attributes = None, no
 		dist += rep_method.gammaattr * attr_dist
 	return np.exp(-dist) #convert distances (weighted by coefficients on structure and attributes) to similarities
 
-#Sample landmark nodes (to compute all pairwise similarities to in Nystrom approx)
-#Input: graph (just need graph size here), RepMethod (just need dimensionality here)
-#Output: np array of node IDs
+# Sample landmark nodes (to compute all pairwise similarities to in Nystrom approx)
+# Input: graph (just need graph size here), RepMethod (just need dimensionality here)
+# Output: np array of node IDs
+# 输入: Graph;RepMethod;
+# 输出: n x D 的特征矩阵
 def get_sample_nodes(graph, rep_method, verbose = True):
 	#Sample uniformly at random
 	sample = np.random.RandomState(seed=42).permutation((np.arange(graph.N)))[:rep_method.p]
 	return sample
 
-#Get dimensionality of learned representations
-#Related to rank of similarity matrix approximations
-#Input: graph, RepMethod
-#Output: dimensionality of representations to learn (tied into rank of similarity matrix approximation)
+# Get dimensionality of learned representations
+# Related to rank of similarity matrix approximations
+# Input: graph, RepMethod
+# Output: dimensionality of representations to learn (tied into rank of similarity matrix approximation)
+# 输入: Graph;RepMethod;
+# 输出: n x D 的特征矩阵
 def get_feature_dimensionality(graph, rep_method, verbose = True):
 	p = int(rep_method.k*math.log(graph.N, 2)) #k*log(n) -- user can set k, default 10
 	if verbose:
-		print("feature dimensionality is ", min(p, graph.N))
+		print("特征维度 ", min(p, graph.N))
 	rep_method.p = min(p,graph.N)  #don't return larger dimensionality than # of nodes
 	return rep_method.p
 
@@ -171,7 +190,7 @@ def get_representations(graph, rep_method, verbose = True):
 	if rep_method.p is None:
 		rep_method.p = get_feature_dimensionality(graph, rep_method, verbose = verbose) #k*log(n), where k = 10
 	elif rep_method.p > graph.N: 
-		print("Warning: dimensionality greater than number of nodes. Reducing to n")
+		print("警告：维度大于节点数!减少到n!")
 		rep_method.p = graph.N
 	landmarks = get_sample_nodes(graph, rep_method, verbose = verbose)
 
@@ -197,7 +216,7 @@ def get_representations(graph, rep_method, verbose = True):
 	reprsn = np.dot(C, Wfac)
 	after_computerep = time.time()
 	if verbose:
-		print("computed representation in time: ", after_computerep - before_computerep)
+		print("表示学习用时: %f 秒 " % (after_computerep - before_computerep))
 
 	#Post-processing step to normalize embeddings (true by default, for use with REGAL)
 	if rep_method.normalize:
