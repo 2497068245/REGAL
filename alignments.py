@@ -72,7 +72,7 @@ def kd_align(emb1, emb2, normalize=False, distance_metric = "euclidean", num_top
 	data = np.array([])
 	
 	dist, ind = kd_tree.query(emb1, k = num_top)
-	print("queried alignments")
+	print("查询对齐(queried alignments)")
 	row = np.array([])
 	for i in range(emb1.shape[0]):
 		row = np.concatenate((row, np.ones(num_top)*i))
@@ -88,8 +88,8 @@ def score_alignment_matrix(alignment_matrix, topk = None, topk_score_weighted = 
 
 	if topk is None:
 		row_sums = alignment_matrix.sum(axis=1)
-		row_sums[row_sums == 0] = 1e-6 #shouldn't affect much since dividing 0 by anything is 0
-		alignment_matrix = alignment_matrix / row_sums[:, np.newaxis] #normalize
+		row_sums[row_sums == 0] = 1e-6  # 应该不会有太大影响，因为0除以0等于0 (shouldn't affect much since dividing 0 by anything is 0)
+		alignment_matrix = alignment_matrix / row_sums[:, np.newaxis] # 归一化 normalize
 
 		alignment_score = score(alignment_matrix, true_alignments = true_alignments)
 	else: 
@@ -98,8 +98,8 @@ def score_alignment_matrix(alignment_matrix, topk = None, topk_score_weighted = 
 			sorted_indices = np.argsort(alignment_matrix)
 		
 		for node_index in range(n_nodes):
-			target_alignment = node_index #default: assume identity mapping, and the node should be aligned to itself
-			if true_alignments is not None: #if we have true alignments (which we require), use those for each node
+			target_alignment = node_index   # 默认值：假设身份映射，结点应与自身对齐 default: assume identity mapping, and the node should be aligned to itself 
+			if true_alignments is not None: # 如果我们有真正的对齐（这是我们所需要的），请为每个节点使用这些对齐 if we have true alignments (which we require), use those for each node
 				target_alignment = int(true_alignments[node_index])
 			if sp.issparse(alignment_matrix):
 				row, possible_alignments, possible_values = sp.find(alignment_matrix[node_index])

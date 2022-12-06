@@ -206,11 +206,11 @@ def get_representations(graph, rep_method, verbose = True):
 		for landmark_index in range(rep_method.p): 	# for each of p landmarks
 			# 选择第p个地标
 			C[node_index,landmark_index] = compute_similarity(graph, 
-															rep_method, 
-															feature_matrix[node_index], 
-															feature_matrix[landmarks[landmark_index]], 
-															graph.node_attributes, 
-															(node_index, landmarks[landmark_index]))
+															  rep_method, 
+															  feature_matrix[node_index], 
+															  feature_matrix[landmarks[landmark_index]], 
+															  graph.node_attributes, 
+															  (node_index, landmarks[landmark_index]))
 
 	before_computerep = time.time()
 
