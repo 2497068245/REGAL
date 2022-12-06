@@ -155,7 +155,7 @@ def learn_representations(args):
 							gammaattr = args.gammaattr)		# 属性相似性权重， 					  默认为1
 	if max_layer is None:
 		max_layer = 1000
-	print("Learning representations with max layer %d and alpha = %f" % (max_layer, alpha))
+	# print("Learning representations with max layer %d and alpha = %f" % (max_layer, alpha))
 	print("最大层=%d 折现因子=%f,进行表示学习" % (max_layer, alpha))
 	# 学习表示
 	representations = xnetmf.get_representations(graph, rep_method)

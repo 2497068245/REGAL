@@ -17,8 +17,8 @@ def get_khop_neighbors(graph, rep_method):
 
 	kneighbors_dict = {}
 
-	#only 0-hop neighbor of a node is itself
-	#neighbors of a node have nonzero connections to it in adj matrix
+	# only 0-hop neighbor of a node is itself
+	# neighbors of a node have nonzero connections to it in adj matrix
 	for node in range(graph.N):
 		neighbors = np.nonzero(graph.G_adj[node])[-1].tolist() ###
 		if len(neighbors) == 0: #disconnected node
@@ -29,50 +29,50 @@ def get_khop_neighbors(graph, rep_method):
 				neighbors = neighbors[0] 
 			kneighbors_dict[node] = {0: set([node]), 1: set(neighbors) - set([node]) } 
 
-	#For each node, keep track of neighbors we've already seen
+	# For each node, keep track of neighbors we've already seen
 	all_neighbors = {}
 	for node in range(graph.N):
 		all_neighbors[node] = set([node])
 		all_neighbors[node] = all_neighbors[node].union(kneighbors_dict[node][1])
 
-	#Recursively compute neighbors in k
-	#Neighbors of k-1 hop neighbors, unless we've already seen them before
-	current_layer = 2 #need to at least consider neighbors
+	# Recursively compute neighbors in k
+	# Neighbors of k-1 hop neighbors, unless we've already seen them before
+	current_layer = 2 # need to at least consider neighbors
 	while True:
 		if rep_method.max_layer is not None and current_layer > rep_method.max_layer: break
-		reached_max_layer = True #whether we've reached the graph diameter
+		reached_max_layer = True # whether we've reached the graph diameter
 
 		for i in range(graph.N):
-			#All neighbors k-1 hops away
+			# All neighbors k-1 hops away
 			neighbors_prevhop = kneighbors_dict[i][current_layer - 1]
 			
 			khop_neighbors = set()
-			#Add neighbors of each k-1 hop neighbors
+			# Add neighbors of each k-1 hop neighbors
 			for n in neighbors_prevhop:
 				neighbors_of_n = kneighbors_dict[n][1]
 				for neighbor2nd in neighbors_of_n: 
 					khop_neighbors.add(neighbor2nd)
 
-			#Correction step: remove already seen nodes (k-hop neighbors reachable at shorter hop distance)
+			# Correction step: remove already seen nodes (k-hop neighbors reachable at shorter hop distance)
 			khop_neighbors = khop_neighbors - all_neighbors[i]
 
-			#Add neighbors at this hop to set of nodes we've already seen
+			# Add neighbors at this hop to set of nodes we've already seen
 			num_nodes_seen_before = len(all_neighbors[i])
 			all_neighbors[i] = all_neighbors[i].union(khop_neighbors)
 			num_nodes_seen_after = len(all_neighbors[i])
 
-			#See if we've added any more neighbors
-			#If so, we may not have reached the max layer: we have to see if these nodes have neighbors
+			# See if we've added any more neighbors
+			# If so, we may not have reached the max layer: we have to see if these nodes have neighbors
 			if len(khop_neighbors) > 0:
 				reached_max_layer = False 
 
-			#add neighbors
+			# add neighbors
 			kneighbors_dict[i][current_layer] = khop_neighbors #k-hop neighbors must be at least k hops away
 
 		if reached_max_layer:
-			break #finished finding neighborhoods (to the depth that we want)
+			break # finished finding neighborhoods (to the depth that we want)
 		else:
-			current_layer += 1 #move out to next layer
+			current_layer += 1 # 跳转到下一层(move out to next layer)
 
 	return kneighbors_dict
 
@@ -89,9 +89,9 @@ def get_degree_sequence(graph, rep_method, kneighbors, current_node):
 	else:
 		degree_counts = [0] * (graph.max_degree + 1)
 
-	#For each node in k-hop neighbors, count its degree
+	# For each node in k-hop neighbors, count its degree
 	for kn in kneighbors:
-		weight = 1 #unweighted graphs supported here
+		weight = 1 # 此处支持未加权图(unweighted graphs supported here)
 		degree = graph.node_degrees[kn]
 		if rep_method.num_buckets is not None:
 			try:
@@ -140,30 +140,32 @@ def get_features(graph, rep_method, verbose = True):
 	after_degseqs = time.time() 
 
 	if verbose:
-		print("获取度序列用时: ", after_degseqs - before_degseqs)
+		print("获取度序列用时: %f 秒 " % (after_degseqs - before_degseqs))
 
 	return feature_matrix
 
 # Input: two vectors of the same length
 # Optional: tuple of (same length) vectors of node attributes for corresponding nodes
 # Output: number between 0 and 1 representing their similarity
-# 输入: Graph;RepMethod;
-# 输出: n x D 的特征矩阵
+# 输入: 两个相同长度的向量
+# (可选): 对应结点的结点属性的（相同长度）向量元组
+# 输出: 介于0和1之间的数字，表示它们的相似性
 def compute_similarity(graph, rep_method, vec1, vec2, node_attributes = None, node_indices = None):
 	dist = rep_method.gammastruc * np.linalg.norm(vec1 - vec2) #compare distances between structural identities
 	if graph.node_attributes is not None:
-		#distance is number of disagreeing attributes 
+		# distance is number of disagreeing attributes 
 		attr_dist = np.sum(graph.node_attributes[node_indices[0]] != graph.node_attributes[node_indices[1]])
 		dist += rep_method.gammaattr * attr_dist
-	return np.exp(-dist) #convert distances (weighted by coefficients on structure and attributes) to similarities
+	return np.exp(-dist) # convert distances (weighted by coefficients on structure and attributes) to similarities
 
 # Sample landmark nodes (to compute all pairwise similarities to in Nystrom approx)
 # Input: graph (just need graph size here), RepMethod (just need dimensionality here)
 # Output: np array of node IDs
-# 输入: Graph;RepMethod;
-# 输出: n x D 的特征矩阵
+# 采样地标结点(用来计算Nystrom近似值中的所有成对相似性)
+# 输入: Graph(只需要图的尺寸);RepMethod(只需要表示的维度);
+# 输出: 结点ID的np数组
 def get_sample_nodes(graph, rep_method, verbose = True):
-	#Sample uniformly at random
+	# 随机均匀采样(Sample uniformly at random)
 	sample = np.random.RandomState(seed=42).permutation((np.arange(graph.N)))[:rep_method.p]
 	return sample
 

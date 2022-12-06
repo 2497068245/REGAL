@@ -13,23 +13,23 @@ def get_embedding_similarities(embed, embed2 = None, sim_measure = "euclidean", 
 	if embed2 is None:
 		embed2 = embed
 
-	if num_top is not None: #KD tree with only top similarities computed
+	if num_top is not None: # 仅计算top相似度的KD树  KD tree with only top similarities computed
 		kd_sim = kd_align(embed, embed2, distance_metric = sim_measure, num_top = num_top)
 		return kd_sim
 
-	#All pairwise distance computation
-	if sim_measure == "cosine":
+	# 计算所有成对结点的距离
+	if sim_measure == "cosine":		# 余弦距离
 		similarity_matrix = sklearn.metrics.pairwise.cosine_similarity(embed, embed2)
-	else:
+	else:							# 不知道啥距离
 		similarity_matrix = sklearn.metrics.pairwise.euclidean_distances(embed, embed2)
 		similarity_matrix = np.exp(-similarity_matrix)
 
 	return similarity_matrix
 
-#Split embeddings in half
-#Right now asssume graphs are same size (as done in paper's experiments)
-#NOTE: to handle graphs of different sizes, pass in an arbitrary split index
-#Similarly, to embed >2 graphs, change to pass in a list of splits and return list of embeddings
+# Split embeddings in half
+# Right now asssume graphs are same size (as done in paper's experiments)
+# NOTE: to handle graphs of different sizes, pass in an arbitrary split index
+# Similarly, to embed >2 graphs, change to pass in a list of splits and return list of embeddings
 
 # 将总的embedding根据初始所处的图拆分成2个或多个embedding
 
@@ -48,7 +48,7 @@ def get_embeddings(combined_embed, graph_split_idx = None):
 # 对齐矩阵：行是图1中的结点，列是图2中的结点
 # 计算对齐的得分
 def score(alignment_matrix, true_alignments = None):
-	if true_alignments is None: #assume it's just identity permutation
+	if true_alignments is None:  # assume it's just identity permutation
 		return np.sum(np.diagonal(alignment_matrix))
 	else:
 		nodes_g1 = [int(node_g1) for node_g1 in true_alignments.keys()]
