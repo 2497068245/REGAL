@@ -140,7 +140,7 @@ def get_features(graph, rep_method, verbose = True):
 	after_degseqs = time.time() 
 
 	if verbose:
-		print("got degree sequences in time: ", after_degseqs - before_degseqs)
+		print("获取度序列用时: ", after_degseqs - before_degseqs)
 
 	return feature_matrix
 
