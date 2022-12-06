@@ -180,13 +180,17 @@ def get_feature_dimensionality(graph, rep_method, verbose = True):
 	rep_method.p = min(p,graph.N)  #don't return larger dimensionality than # of nodes
 	return rep_method.p
 
-#xNetMF pipeline
+# xNetMF pipeline
+# 获得表示
 def get_representations(graph, rep_method, verbose = True):
-	#Node identity extraction
+	# Node identity extraction
+	# 结点身份提取
 	feature_matrix = get_features(graph, rep_method, verbose)
 	
-	#Efficient similarity-based representation
-	#Get landmark nodes
+	# Efficient similarity-based representation
+	# Get landmark nodes
+	# 基于相似度的高效表示
+	# 获取地标结点
 	if rep_method.p is None:
 		rep_method.p = get_feature_dimensionality(graph, rep_method, verbose = verbose) #k*log(n), where k = 10
 	elif rep_method.p > graph.N: 
@@ -194,12 +198,13 @@ def get_representations(graph, rep_method, verbose = True):
 		rep_method.p = graph.N
 	landmarks = get_sample_nodes(graph, rep_method, verbose = verbose)
 
-	#Explicitly compute similarities of all nodes to these landmarks
+	# Explicitly compute similarities of all nodes to these landmarks
+	# 明确计算所有节点与这些地标的相似性
 	before_computesim = time.time()
 	C = np.zeros((graph.N,rep_method.p))
-	for node_index in range(graph.N): #for each of N nodes
-		for landmark_index in range(rep_method.p): #for each of p landmarks
-			#select the p-th landmark
+	for node_index in range(graph.N): 				# for each of N nodes
+		for landmark_index in range(rep_method.p): 	# for each of p landmarks
+			# 选择第p个地标
 			C[node_index,landmark_index] = compute_similarity(graph, 
 															rep_method, 
 															feature_matrix[node_index], 
@@ -209,7 +214,8 @@ def get_representations(graph, rep_method, verbose = True):
 
 	before_computerep = time.time()
 
-	#Compute Nystrom-based node embeddings
+	# Compute Nystrom-based node embeddings
+	# 计算基于Nystrom的结点嵌入
 	W_pinv = np.linalg.pinv(C[landmarks])
 	U,X,V = np.linalg.svd(W_pinv)
 	Wfac = np.dot(U, np.diag(np.sqrt(X)))
@@ -218,15 +224,15 @@ def get_representations(graph, rep_method, verbose = True):
 	if verbose:
 		print("表示学习用时: %f 秒 " % (after_computerep - before_computerep))
 
-	#Post-processing step to normalize embeddings (true by default, for use with REGAL)
+	# Post-processing step to normalize embeddings (true by default, for use with REGAL)
 	if rep_method.normalize:
 		reprsn = reprsn / np.linalg.norm(reprsn, axis = 1).reshape((reprsn.shape[0],1))
 	return reprsn
 
 if __name__ == "__main__":
 	if len(sys.argv) < 2:
-		#####PUT IN YOUR GRAPH AS AN EDGELIST HERE (or pass as cmd line argument)#####  
-		#(see networkx read_edgelist() method...if networkx can read your file as an edgelist you're good!)
+		##### PUT IN YOUR GRAPH AS AN EDGELIST HERE (or pass as cmd line argument)#####  
+		# (see networkx read_edgelist() method...if networkx can read your file as an edgelist you're good!)
 		graph_file = "data/arenas_combined_edges.txt"
 	else:
 		graph_file = sys.argv[1]
@@ -234,7 +240,7 @@ if __name__ == "__main__":
 	adj_matrix = nx.adjacency_matrix(nx_graph).todense()
 	
 	graph = Graph(adj_matrix)
-	rep_method = RepMethod(max_layer = 2) #Learn representations with xNetMF.  Can adjust parameters (e.g. as in REGAL)
+	rep_method = RepMethod(max_layer = 2) # Learn representations with xNetMF.  Can adjust parameters (e.g. as in REGAL)
 	representations = get_representations(graph, rep_method)
 	print(representations.shape)
 
