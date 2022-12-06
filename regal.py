@@ -123,7 +123,7 @@ def main(args):
 		topk_scores = [1]#,5,10,20,50]
 		for k in topk_scores:
 			score, correct_nodes = score_alignment_matrix(alignment_matrix, topk = k, true_alignments = true_alignments)
-			print("得分 %d: %f" % (k, score))
+			print("k=%d: score=%f" % (k, score))
 
 # Should take in a file with the input graph as edgelist (args.input)
 # Should save representations to args.output
