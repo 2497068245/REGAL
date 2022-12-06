@@ -100,12 +100,12 @@ def main(args):
 
 	# Learn embeddings and save to output
 	# 学习嵌入与保存输出
-	print("学习表征中...")
+	print("表示学习中...")
 	before_rep = time.time()
 	embed = learn_representations(args)
 	print(embed)
 	after_rep = time.time()
-	print("学习表征用时 %f 秒" % (after_rep - before_rep))
+	print("表示学习用时 %f 秒" % (after_rep - before_rep))
 
 	emb1, emb2 = get_embeddings(embed)
 	before_align = time.time()
@@ -134,7 +134,7 @@ def main(args):
 def learn_representations(args):
 	nx_graph = nx.read_edgelist(args.input, nodetype = int, comments="%")
 	print("读入图")
-	adj = nx.adjacency_matrix(nx_graph, nodelist = range(nx_graph.number_of_nodes()) )
+	adj = nx.adjacency_matrix(nx_graph, nodelist = range(nx_graph.number_of_nodes()))
 	print("得到邻接矩阵")
 	
 	graph = Graph(adj, node_attributes = args.attributes)

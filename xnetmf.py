@@ -37,6 +37,7 @@ def get_khop_neighbors(graph, rep_method):
 
 	# Recursively compute neighbors in k
 	# Neighbors of k-1 hop neighbors, unless we've already seen them before
+	# 递归计算每个结点的k-hop邻居
 	current_layer = 2 # need to at least consider neighbors
 	while True:
 		if rep_method.max_layer is not None and current_layer > rep_method.max_layer: break
@@ -227,6 +228,7 @@ def get_representations(graph, rep_method, verbose = True):
 		print("表示学习用时: %f 秒 " % (after_computerep - before_computerep))
 
 	# Post-processing step to normalize embeddings (true by default, for use with REGAL)
+	# 标准化嵌入的后处理步骤（默认为true，用于REGAL）
 	if rep_method.normalize:
 		reprsn = reprsn / np.linalg.norm(reprsn, axis = 1).reshape((reprsn.shape[0],1))
 	return reprsn
@@ -235,6 +237,8 @@ if __name__ == "__main__":
 	if len(sys.argv) < 2:
 		##### PUT IN YOUR GRAPH AS AN EDGELIST HERE (or pass as cmd line argument)#####  
 		# (see networkx read_edgelist() method...if networkx can read your file as an edgelist you're good!)
+		#### 在此处以边列表的形式输入graph（或以cmd命令行传参） ####
+		# （请参阅networkx read_edgelist（）方法…如果networkx可以将文件作为边缘列表读取，那就好了！）
 		graph_file = "data/arenas_combined_edges.txt"
 	else:
 		graph_file = sys.argv[1]
