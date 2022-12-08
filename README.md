@@ -1,10 +1,10 @@
-This repository contains a Python implementation of methods presented in the following paper:
+该存储库包含以下论文中介绍的方法的Python实现：
 
 Mark Heimann, Haoming Shen, Tara Safavi, and Danai Koutra. *REGAL: Representation Learning-based Graph Alignment*. International Conference on Information and Knowledge Management (CIKM), 2018.
 
 *Paper*: https://gemslab.github.io/papers/heimann-2018-regal.pdf
 
-Please consider citing this paper if you find the code helpful. 
+如果您觉得代码有用，请考虑引用本文. 
 ```bibtex
 @inproceedings{DBLP:conf/cikm/HeimannSSK18,
   author    = {Mark Heimann and
@@ -21,30 +21,30 @@ Please consider citing this paper if you find the code helpful.
 }
 ```
 
-Included is code for REGAL, our node embedding framework for network alignment, and its component node embedding method xNetMF.   
-This is only a reference implementation; without doubt it can be much improved, but we hope it is helpful!
+包括REGAL的代码，REGAL是我们用于网络对齐的节点嵌入框架，以及它的组成:节点嵌入方法xNetMF。
+这只是一个参考实现；毫无疑问，它可以得到很大的改进，但我们希望它有帮助！
 
 
-DEPENDENCIES
+依赖
 =======================
 numpy, scipy, networkx (all may be installed with pip)
 Tested with Python 3.8.5 and Python 2.7.16
 
-EXAMPLE
+实例
 =======================
-- Align (unattributed): python regal.py 
-- Align (with attributes): python regal.py --attributes data/attributes/attr1-2vals-prob0.000000
-- Embedding only: python xnetmf.py
+- Align (没有属性/特征): python regal.py 
+- Align (有属性.特征):   python regal.py --attributes data/attributes/attr1-2vals-prob0.000000
+- 进获得嵌入:            python xnetmf.py
 - (example runs on data/arenas990-1 dataset, one of the trials of the Arenas email network with 1% noise)
 
-INSTRUCTIONS - xNetMF embeddings only
+说明 - xNetMF embeddings only
 =======================
 - Import config (see config for details about the options on the following objects)
 - Initialize a Graph object with adjacency matrix and any other optional information (e.g. node attributes)
 - Initialize a RepMethod object, with whatever hyperparameter settings you wish to use (defaults are preset)
 - Call get_representations() in xnetmf.py with these two objects as arguments
 
-INSTRUCTIONS - REGAL alignments from xNetMF embeddings
+说明 - REGAL alignments from xNetMF embeddings
 ======================
 - Combine two graphs with adjacency matrices A1, A2, into combined matrix: [A1 0; 0 A2]
 - Save this graph as an edgelist file (recommended: NetworkX write_edgelist() method) as DATA_combined_edges.txt (the "combined_edges.txt" part is optional, but regal.py will look for what is before the first underscore)
