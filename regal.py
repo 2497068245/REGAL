@@ -68,12 +68,13 @@ def parse_args():
 
 
 def main(args):
+    # 提取数据集名称
     dataset_name = args.output.split("/")
     if len(dataset_name) == 1:
         dataset_name = dataset_name[-1].split(".")[0]
     else:
         dataset_name = dataset_name[-2]
-
+    print("数据集名称:", dataset_name)
     # 加载真实标签
     # 由于默认 input = data/arenas_combined_edges.txt
     # 最终     true_alignments_fname = data/arenas_edges-mapping-permutation.txt
@@ -101,6 +102,7 @@ def main(args):
     # 序列类型（包括tuple，list，dict，set等），空表示False，非空表示True
     # None永远表示False
 
+    # 如果指定了属性目录
     if args.attributes is not None:
         args.attributes = np.load(args.attributes)  # 从文件加载属性向量
         print("属性向量读取成功！")
@@ -108,7 +110,7 @@ def main(args):
 
     # Learn embeddings and save to output
     # 学习嵌入与保存输出
-    print("表示学习中...")
+    print("开始表示学习中")
     before_rep = time.time()
     embed = learn_representations(args)
     print(embed)
@@ -144,29 +146,29 @@ def learn_representations(args):
     nx_graph = nx.read_edgelist(args.input, nodetype=int, comments="%")
     print("读入图")
     adj = nx.adjacency_matrix(nx_graph, nodelist=range(nx_graph.number_of_nodes()))
-    print("得到邻接矩阵")
-
+    print("图的邻接矩阵表示")
+    # 创建Graph对象
     graph = Graph(adj, node_attributes=args.attributes)
     max_layer = args.untillayer  # xNetMF层之前的计算，默认为2
     if args.untillayer == 0:
         max_layer = None
-    alpha = args.alpha  # 折现因子，默认为0.01
-    num_buckets = args.buckets  # degree binning)的对数基  BASE OF LOG FOR LOG SCALE
+    alpha = args.alpha          # 折现因子，默认为0.01
+    num_buckets = args.buckets  # degree binning的对数基  BASE OF LOG FOR LOG SCALE
     if num_buckets == 1:
         num_buckets = None
-    # 创建对象
-    rep_method = RepMethod(max_layer=max_layer,  # xNetMF层之前的计算,			 	  默认为2
-                           alpha=alpha,  # 折现因子,						      默认为0.01
-                           k=args.k,  # 控制要采样的地标(landmark)数量，	  默认值为10
-                           num_buckets=num_buckets,  # 度（节点特征）装箱(degree binning)的对数基
-                           normalize=True,  # 是否标准化
-                           gammastruc=args.gammastruc,  # 结构相似性权重，					  默认为1
-                           gammaattr=args.gammaattr)  # 属性相似性权重， 					  默认为1
+    # 创建RepMethod对象
+    rep_method = RepMethod(max_layer=max_layer,          # xNetMF层之前的计算,			 	  默认为2
+                           alpha=alpha,                  # 折现因子,						      默认为0.01
+                           k=args.k,                     # 控制要采样的地标(landmark)数量，	  默认值为10
+                           num_buckets=num_buckets,      # 度（节点特征）装箱(degree binning)的对数基
+                           normalize=True,               # 是否标准化
+                           gammastruc=args.gammastruc,   # 结构相似性权重，					  默认为1
+                           gammaattr=args.gammaattr)     # 属性相似性权重， 					  默认为1
     if max_layer is None:
         max_layer = 1000
     # print("Learning representations with max layer %d and alpha = %f" % (max_layer, alpha))
     print("最大层=%d 折现因子=%f,进行表示学习" % (max_layer, alpha))
-    # 学习表示
+    # 表示学习
     representations = xnetmf.get_representations(graph, rep_method)
     np.save(args.output, representations)
     return representations
